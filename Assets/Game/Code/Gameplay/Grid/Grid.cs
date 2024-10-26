@@ -21,16 +21,20 @@ namespace ColorBlocks
         [SerializeField] private GridParameters gridParameters;
 
         public static Grid Instance { get; private set; }
+        public int MaxMoves => _maxMoves;
         public delegate void BlockMovedHandler(Block block, int fromRow, int fromCol, int toRow, int toCol);
         public delegate void BlockDestroyedHandler(Block block);
         public event BlockMovedHandler OnBlockMoved;
         public event BlockDestroyedHandler OnBlockDestroyed;
+        public delegate void MoveCountChangedHandler(int moves);
+        public event MoveCountChangedHandler OnMoveCountChanged;
 
         private ICellManager cellManager;
         private IBlockManager blockManager;
         private IGateManager gateManager;
         private IGridFactory gridFactory;
         private LevelCompletionHandler levelCompletionHandler;
+        private int _maxMoves;
 
         private void Awake()
         {
@@ -82,6 +86,7 @@ namespace ColorBlocks
             {
                 levelCompletionHandler.UpdateLevelData(levelData);
             }
+            _maxMoves = levelData.MoveLimit;
         }
 
         private void SetupPlane(int cols, int rows)
@@ -128,6 +133,8 @@ namespace ColorBlocks
                 OnBlockDestroyed?.Invoke(block);
             }
 
+            OnMoveCountChanged?.Invoke(blockManager.GetMoveCount());
+            
             return moved.result == BlockMovedEventArgs.BlockMoveResult.moved;
         }
 

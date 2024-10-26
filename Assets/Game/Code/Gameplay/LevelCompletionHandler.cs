@@ -39,7 +39,6 @@ namespace ColorBlocks
 
         private void CheckLevelCompletion()
         {
-            Debug.Log("CheckLevelCompletion: " + _blockManager.GetMoveCount() + " " + _levelData.MoveLimit);
             
             if (_levelData.MoveLimit > 0 && _blockManager.GetMoveCount() >= _levelData.MoveLimit)
             {

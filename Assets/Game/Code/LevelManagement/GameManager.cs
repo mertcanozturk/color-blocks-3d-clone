@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,13 @@ namespace ColorBlocks
         [SerializeField] private LevelSet _levelSet;
 
         private int _currentLevelIndex = 0;
+        private int _moves = 0;
+        private int _currentLevel;
+        public int CurrentLevel => _currentLevel;
+
+        public Action<int> OnLevelStarted;
+        public Action<int> OnLevelCompleted;
+        public Action<int> OnLevelFailed;
 
         private void Awake()
         {
@@ -31,6 +39,7 @@ namespace ColorBlocks
         private void LoadCurrentLevel()
         {
             _levelLoader.LoadLevel(_levelSet.GetLevel(_currentLevelIndex));
+            OnLevelStarted?.Invoke(_currentLevel);
         }
 
         public void LevelCompleted()
@@ -42,9 +51,13 @@ namespace ColorBlocks
             yield return new WaitForSeconds(1f);
             if(success){
                 _currentLevelIndex++;
+                _currentLevel++;
+                OnLevelCompleted?.Invoke(_currentLevel);
             }
-
-            Debug.Log("Level: " + (success ? "Completed" : "Failed") + " " + _currentLevelIndex);
+            else
+            {
+                OnLevelFailed?.Invoke(_currentLevel);
+            }
             LoadCurrentLevel();
         }
 
