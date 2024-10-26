@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using DG.Tweening;
 namespace ColorBlocks
@@ -47,7 +45,6 @@ namespace ColorBlocks
             Row = newRow;
             Col = newCol;
             transform.DOMove(Grid.Instance.GetCellPosition(newRow, newCol), moveTime);
-
         }
 
         public bool CanMove(int direction)

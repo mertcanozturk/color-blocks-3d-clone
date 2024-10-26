@@ -1,5 +1,4 @@
 using UnityEngine;
-
 namespace ColorBlocks
 {
     public class BlockDragHandler : MonoBehaviour

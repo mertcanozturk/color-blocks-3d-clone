@@ -141,6 +141,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 60c655f1870d0b1459bab3b669432a59, type: 2}
   - {fileID: 2100000, guid: 651b1f5934768644fb312005a9bc7b12, type: 2}
   smashBlock: {fileID: 8802975706990429652}
+  shakeObject: {fileID: 5460934959284565911}
   gateTransform: {fileID: 4655371134399575703}
 --- !u!1001 &5121026107747012988
 PrefabInstance:
@@ -325,7 +326,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4037932241692187809, guid: 8a41aad1ae37d204d9f3de4e46f61a98, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.132
+      value: -0.101
       objectReference: {fileID: 0}
     - target: {fileID: 4037932241692187809, guid: 8a41aad1ae37d204d9f3de4e46f61a98, type: 3}
       propertyPath: m_LocalRotation.w
@@ -364,6 +365,11 @@ PrefabInstance:
 --- !u!4 &5090927554257542651 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4037932241692187809, guid: 8a41aad1ae37d204d9f3de4e46f61a98, type: 3}
+  m_PrefabInstance: {fileID: 9128521951674630490}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5460934959284565911 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3847803820130645709, guid: 8a41aad1ae37d204d9f3de4e46f61a98, type: 3}
   m_PrefabInstance: {fileID: 9128521951674630490}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &8802975706990429652 stripped
