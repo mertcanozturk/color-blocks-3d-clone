@@ -7,14 +7,12 @@ namespace ColorBlocks
         private Pool<Cell> _cellPrefab;
         private Pool<Block>[] _blockPrefabs;
         private Pool<Gate> _gatePrefab;
-        private GridParameters _gridParameters;
 
-        public GridFactory(Pool<Cell> cellPrefab, Pool<Block>[] blockPrefabs, Pool<Gate> gatePrefab, GridParameters gridParameters)
+        public GridFactory(Pool<Cell> cellPrefab, Pool<Block>[] blockPrefabs, Pool<Gate> gatePrefab)
         {
             _cellPrefab = cellPrefab;
             _blockPrefabs = blockPrefabs;
             _gatePrefab = gatePrefab;
-            _gridParameters = gridParameters;
         }
 
         public Cell CreateCell(Vector3 position, int col, int row)

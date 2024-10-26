@@ -10,7 +10,6 @@ namespace ColorBlocks
         void CreateBlocks(LevelData levelData);
         BlockMovedEventArgs MoveBlock(int dragID, Block block, int direction);
         void ClearBlocks();
-        List<Block> GetBlocks();
 
     }
 
@@ -109,11 +108,6 @@ namespace ColorBlocks
                 block.gameObject.SetActive(false);
             }
             _blocks.Clear();
-        }
-
-        public List<Block> GetBlocks()
-        {
-            return _blocks;
         }
 
         private Quaternion CalculateBlockRotation(int direction)

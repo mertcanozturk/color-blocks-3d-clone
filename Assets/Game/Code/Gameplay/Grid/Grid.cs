@@ -58,7 +58,7 @@ namespace ColorBlocks
                 blockPrefabs[i].Init(10);
             }
 
-            gridFactory = new GridFactory(cellPrefab, blockPrefabs, gatePrefab, gridParameters);
+            gridFactory = new GridFactory(cellPrefab, blockPrefabs, gatePrefab);
             cellManager = new CellManager(gridFactory, gridParameters);
             gateManager = new GateManager(gridFactory, cellManager, gridParameters);
             blockManager = new BlockManager(gridFactory, cellManager, gridParameters, gateManager);
