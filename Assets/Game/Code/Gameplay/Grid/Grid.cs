@@ -1,31 +1,36 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static ColorBlocks.BlockManager;
 
 namespace ColorBlocks
 {
     public interface IGridSystem
     {
         void InitGrid(LevelData levelData);
-        bool MoveBlock(Block block, int direction);
+        bool MoveBlock(int dragID,Block block, int direction);
         Vector3 GetCellPosition(int row, int col);
     }
     public class Grid : MonoBehaviour, IGridSystem
     {
         [SerializeField] private GameObject plane;
-        [SerializeField] private Cell cellPrefab;
-        [SerializeField] private Block[] blockPrefabs;
-        [SerializeField] private Gate gatePrefab;
+        [SerializeField] private Pool<Cell> cellPrefab;
+        [SerializeField] private Pool<Block>[] blockPrefabs;
+        [SerializeField] private Pool<Gate> gatePrefab;
         [SerializeField] private GridParameters gridParameters;
 
         public static Grid Instance { get; private set; }
         public delegate void BlockMovedHandler(Block block, int fromRow, int fromCol, int toRow, int toCol);
+        public delegate void BlockDestroyedHandler(Block block);
         public event BlockMovedHandler OnBlockMoved;
+        public event BlockDestroyedHandler OnBlockDestroyed;
 
         private ICellManager cellManager;
         private IBlockManager blockManager;
         private IGateManager gateManager;
         private IGridFactory gridFactory;
+        private LevelCompletionHandler levelCompletionHandler;
 
         private void Awake()
         {
@@ -42,6 +47,13 @@ namespace ColorBlocks
 
         private void InitializeManagers()
         {
+            cellPrefab.Init(16);
+            gatePrefab.Init(16);
+            for (int i = 0; i < blockPrefabs.Length; i++)   
+            {
+                blockPrefabs[i].Init(10);
+            }
+
             gridFactory = new GridFactory(cellPrefab, blockPrefabs, gatePrefab, gridParameters);
             cellManager = new CellManager(gridFactory, gridParameters);
             gateManager = new GateManager(gridFactory, cellManager, gridParameters);
@@ -62,6 +74,14 @@ namespace ColorBlocks
             cellManager.CreateCells(cols, rows, totalWidth - gridParameters.cellSize, totalHeight - gridParameters.cellSize);
             blockManager.CreateBlocks(levelData);
             gateManager.CreateGates(levelData);
+            if (levelCompletionHandler == null)
+            {
+                levelCompletionHandler = new LevelCompletionHandler(this, levelData, blockManager, cellManager);
+            }
+            else
+            {
+                levelCompletionHandler.UpdateLevelData(levelData);
+            }
         }
 
         private void SetupPlane(int cols, int rows)
@@ -83,14 +103,14 @@ namespace ColorBlocks
             return cellManager.GetCellPosition(row, col);
         }
 
-        public bool MoveBlock(Block block, int direction)
+        public bool MoveBlock(int dragID,Block block, int direction)
         {
             int oldRow = block.Row;
             int oldCol = block.Col;
 
-            bool moved = blockManager.MoveBlock(block, direction);
-
-            if (moved)
+            BlockMovedEventArgs moved = blockManager.MoveBlock(dragID, block, direction);
+        
+            if (moved.result == BlockMovedEventArgs.BlockMoveResult.moved)
             {
                 OnBlockMoved?.Invoke(block, oldRow, oldCol, block.Row, block.Col);
 
@@ -99,12 +119,22 @@ namespace ColorBlocks
                     if (gateManager.TryDestroyBlock(block, direction))
                     {
                         cellManager.ClearOccupied(block);
+                        OnBlockDestroyed?.Invoke(block);
                     }
                 }
             }
-            return moved;
+            else if (moved.result == BlockMovedEventArgs.BlockMoveResult.destroyed)
+            {
+                OnBlockDestroyed?.Invoke(block);
+            }
+
+            return moved.result == BlockMovedEventArgs.BlockMoveResult.moved;
         }
 
+        internal void ClearGrid()
+        {
+            ClearAll();
+        }
     }
         [System.Serializable]
         public struct GridParameters

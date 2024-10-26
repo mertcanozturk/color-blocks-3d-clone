@@ -6,10 +6,12 @@ namespace ColorBlocks
 {
     public interface IBlockManager
     {
+        public int GetMoveCount();
         void CreateBlocks(LevelData levelData);
-        bool MoveBlock(Block block, int direction);
+        BlockMovedEventArgs MoveBlock(int dragID, Block block, int direction);
         void ClearBlocks();
         List<Block> GetBlocks();
+
     }
 
     public class BlockManager : IBlockManager
@@ -19,6 +21,9 @@ namespace ColorBlocks
         private ICellManager _cellManager;
         private GridParameters _gridParameters;
         private IGateManager _gateManager;
+        private int _moveCount = 0;
+        private int _lastDragID = -1;
+
         public BlockManager(IGridFactory gridFactory, ICellManager cellManager, GridParameters gridParameters, IGateManager gateManager)
         {
             _gridFactory = gridFactory;
@@ -30,6 +35,7 @@ namespace ColorBlocks
         public void CreateBlocks(LevelData levelData)
         {
             ClearBlocks();
+            _moveCount = 0;
             foreach (var movableInfo in levelData.MovableInfo)
             {
                 Vector3 position = _cellManager.GetCellPosition(movableInfo.Row, movableInfo.Col);
@@ -40,11 +46,11 @@ namespace ColorBlocks
             }
         }
 
-        public bool MoveBlock(Block block, int direction)
+        public BlockMovedEventArgs MoveBlock(int dragID, Block block, int direction)
         {
             if (!_blocks.Contains(block) || !block.CanMove(direction))
             {
-                return false;
+                return new BlockMovedEventArgs { result = BlockMovedEventArgs.BlockMoveResult.failed };
             }
 
             int oldRow = block.Row;
@@ -55,22 +61,52 @@ namespace ColorBlocks
             UpdateNewPosition(ref newRow, ref newCol, direction);
 
 
-            if (IsValidMove(newRow, newCol, block))
+            BlockMovedEventArgs.BlockMoveResult result = TryToMove(newRow, newCol, block);
+            if (result == BlockMovedEventArgs.BlockMoveResult.moved)
             {
                 ClearOccupiedCells(block);
                 block.Move(newRow, newCol, _gridParameters.blockMoveTime);
                 SetOccupiedCells(block);
-                return true;
+                if (_lastDragID != dragID)
+                {
+                    _moveCount++;
+                    _lastDragID = dragID;
+                }
+
+            }
+            else if (result == BlockMovedEventArgs.BlockMoveResult.destroyed)
+            {
+                _blocks.Remove(block);
+                ClearOccupiedCells(block);
+                if (_lastDragID != dragID)
+                {
+                    _moveCount++;
+                    _lastDragID = dragID;
+                }
+                return new BlockMovedEventArgs { result = result };
             }
 
-            return false;
+            return new BlockMovedEventArgs
+            {
+                result = result,
+                block = block,
+                fromRow = oldRow,
+                fromCol = oldCol,
+                toRow = newRow,
+                toCol = newCol
+            };
+        }
+
+        public int GetMoveCount()
+        {
+            return _moveCount;
         }
 
         public void ClearBlocks()
         {
             foreach (var block in _blocks)
             {
-                UnityEngine.Object.Destroy(block.gameObject);
+                block.gameObject.SetActive(false);
             }
             _blocks.Clear();
         }
@@ -109,7 +145,7 @@ namespace ColorBlocks
             }
         }
 
-        private bool IsValidMove(int row, int col, Block block)
+        private BlockMovedEventArgs.BlockMoveResult TryToMove(int row, int col, Block block)
         {
             int length = block.Length;
             for (int i = 0; i < length; i++)
@@ -119,7 +155,7 @@ namespace ColorBlocks
                 int dir = GetDirection(block, checkRow, checkCol);
                 if (dir == -1)
                 {
-                    return false;
+                    return BlockMovedEventArgs.BlockMoveResult.failed;
                 }
                 if (dir % 2 == 0)
                 {
@@ -130,21 +166,23 @@ namespace ColorBlocks
                     checkCol += i;
                 }
 
+
                 if (_cellManager.IsOutOfBounds(checkRow, checkCol))
                 {
                     if (_gateManager.TryDestroyBlock(block, dir))
                     {
-                        _cellManager.ClearOccupied(block);
+                        return BlockMovedEventArgs.BlockMoveResult.destroyed;
                     }
-                    return false;
+                    return BlockMovedEventArgs.BlockMoveResult.failed;
+
+                }
+                else if (_cellManager.IsOccupied(checkRow, checkCol, block))
+                {
+                    return BlockMovedEventArgs.BlockMoveResult.failed;
                 }
 
-                if (_cellManager.IsOccupied(checkRow, checkCol, block))
-                {
-                    return false;
-                }
             }
-            return true;
+            return BlockMovedEventArgs.BlockMoveResult.moved;
         }
 
         private void ClearOccupiedCells(Block block)
@@ -170,5 +208,23 @@ namespace ColorBlocks
                 _cellManager.SetOccupied(row, col, block);
             }
         }
+
+
+    }
+
+    public struct BlockMovedEventArgs
+    {
+        public enum BlockMoveResult
+        {
+            destroyed,
+            moved,
+            failed
+        }
+        public BlockMoveResult result;
+        public Block block;
+        public int fromRow;
+        public int fromCol;
+        public int toRow;
+        public int toCol;
     }
 }

@@ -40,7 +40,7 @@ namespace ColorBlocks
         {
             foreach (var gate in _gates)
             {
-                UnityEngine.Object.Destroy(gate.gameObject);
+                gate.gameObject.SetActive(false);
             }
             _gates.Clear();
         }

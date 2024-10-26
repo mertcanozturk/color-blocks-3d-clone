@@ -8,6 +8,7 @@ namespace ColorBlocks
         private float _minMoveDistance = 0.3f;
         private Camera _mainCamera;
         private Vector3 _lastMovePosition;
+        private static int _touchIndex = 0;
 
         private void Awake()
         {
@@ -37,6 +38,7 @@ namespace ColorBlocks
                     if (IsBlockTouched(touch.position))
                     {
                         StartDrag(GetWorldPosition(touch.position));
+                        IncreaseTouchIndex();
                     }
                     break;
 
@@ -48,11 +50,19 @@ namespace ColorBlocks
                     break;
 
                 case TouchPhase.Ended:
-                    if (_isDragging)
+                    if (_isDragging )
                     {
                         EndDrag();
                     }
                     break;
+            }
+        }
+        private void IncreaseTouchIndex()
+        {
+            _touchIndex++;
+            if(_touchIndex > 10000)
+            {
+                _touchIndex = 0;
             }
         }
 
@@ -63,6 +73,7 @@ namespace ColorBlocks
                 if (IsBlockTouched(Input.mousePosition))
                 {
                     StartDrag(GetWorldPosition(Input.mousePosition));
+                    IncreaseTouchIndex();
                 }
             }
             else if (Input.GetMouseButton(0))
@@ -90,16 +101,15 @@ namespace ColorBlocks
         private void ContinueDrag(Vector3 currentPosition)
         {
             Vector3 dragDirection = currentPosition - _lastMovePosition;
-            dragDirection.y = 0; 
+            dragDirection.y = 0;
 
             if (dragDirection.magnitude >= _minMoveDistance)
             {
                 int direction = GetSwipeDirection(dragDirection);
-                bool moved = Grid.Instance.MoveBlock(_block, direction);
+                bool moved = Grid.Instance.MoveBlock(_touchIndex, _block, direction);
                 if (moved)
                 {
                     _lastMovePosition = currentPosition;
-                    Debug.Log($"Block moved during drag. Direction: {direction}");
                 }
             }
         }
@@ -141,9 +151,9 @@ namespace ColorBlocks
             swipe.y = 0;
             float angle = Vector3.SignedAngle(Vector3.right, swipe, Vector3.up);
 
-            if (angle >= -45f && angle < 45f) return 1; 
-            if (angle >= 45f && angle < 135f) return 2; 
-            if (angle >= 135f || angle < -135f) return 3; 
+            if (angle >= -45f && angle < 45f) return 1;
+            if (angle >= 45f && angle < 135f) return 2;
+            if (angle >= 135f || angle < -135f) return 3;
             return 0;
         }
     }

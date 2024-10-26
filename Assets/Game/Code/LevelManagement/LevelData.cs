@@ -4,22 +4,6 @@ using UnityEngine;
 
 namespace ColorBlocks
 {
-    public class Test : MonoBehaviour
-    {
-        [SerializeField] private Grid grid;
-        public int rows = 10;
-        public int cols = 10;
-        [SerializeField] private TextAsset levelJson;
-
-        [Button]
-        public void InitGrid()
-        {
-            var levelData = JsonUtility.FromJson<LevelData>(levelJson.text);
-            grid.InitGrid(levelData);
-        }
-
-    }
-
     [System.Serializable]
     public struct LevelData
     {

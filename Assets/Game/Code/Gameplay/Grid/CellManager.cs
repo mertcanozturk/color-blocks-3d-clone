@@ -9,9 +9,11 @@ namespace ColorBlocks
         bool IsOccupied(int row, int col, Block block);
         void SetOccupied(int row, int col, Block block);
         void ClearOccupied(Block block);
+        bool HasOccupiedCells();
         bool IsOutOfBounds(int row, int col);
         bool IsEdge(Block block);
         void ClearCells();
+        
     }
 
     public class CellManager : ICellManager
@@ -53,7 +55,14 @@ namespace ColorBlocks
         {
             _cells[col, row].SetBlock(block);
         }
-
+        public bool HasOccupiedCells()
+        {
+            foreach (var cell in _cells)
+            {
+                if (cell.IsOccupied()) return true;
+            }
+            return false;   
+        }
         public void ClearOccupied(Block block)
         {
             for (int i = 0; i < _cells.GetLength(0); i++)
@@ -93,7 +102,7 @@ namespace ColorBlocks
             if (_cells == null) return;
             foreach (var cell in _cells)
             {
-                Object.Destroy(cell.gameObject);
+                cell.gameObject.SetActive(false);
             }
             _cells = null;
         }

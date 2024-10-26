@@ -4,12 +4,12 @@ namespace ColorBlocks
 {
     public class GridFactory : IGridFactory
     {
-        private Cell _cellPrefab;
-        private Block[] _blockPrefabs;
-        private Gate _gatePrefab;
+        private Pool<Cell> _cellPrefab;
+        private Pool<Block>[] _blockPrefabs;
+        private Pool<Gate> _gatePrefab;
         private GridParameters _gridParameters;
 
-        public GridFactory(Cell cellPrefab, Block[] blockPrefabs, Gate gatePrefab, GridParameters gridParameters)
+        public GridFactory(Pool<Cell> cellPrefab, Pool<Block>[] blockPrefabs, Pool<Gate> gatePrefab, GridParameters gridParameters)
         {
             _cellPrefab = cellPrefab;
             _blockPrefabs = blockPrefabs;
@@ -19,7 +19,9 @@ namespace ColorBlocks
 
         public Cell CreateCell(Vector3 position, int col, int row)
         {
-            Cell cell = Object.Instantiate(_cellPrefab, position, Quaternion.identity);
+            Cell cell = _cellPrefab.Get();
+            cell.transform.position = position;
+            cell.transform.rotation = Quaternion.identity;
             cell.col = col;
             cell.row = row;
             return cell;
@@ -33,14 +35,18 @@ namespace ColorBlocks
                 return null;
             }
 
-            Block block = Object.Instantiate(_blockPrefabs[movableInfo.Length - 1], position, rotation);
+            Block block = _blockPrefabs[movableInfo.Length - 1].Get();
+            block.transform.position = position;
+            block.transform.rotation = rotation;
             block.SetValues(movableInfo.Row, movableInfo.Col, movableInfo.Direction, movableInfo.Colors, movableInfo.Length);
             return block;
         }
 
         public Gate CreateGate(Vector3 position, Quaternion rotation, ExitInfo exitInfo)
         {
-            Gate gate = Object.Instantiate(_gatePrefab, position, rotation);
+            Gate gate = _gatePrefab.Get();
+            gate.transform.position = position;
+            gate.transform.rotation = rotation;
             gate.Init(exitInfo.Row, exitInfo.Col, exitInfo.Direction, exitInfo.Colors);
             return gate;
         }
